@@ -1,0 +1,81 @@
+# Anchor POS - Installation Notes
+
+Thank you for installing Anchor POS!
+
+## System Requirements
+
+- **Operating System**: Windows 10 or later (64-bit)
+- **.NET Runtime**: .NET 10 Desktop Runtime (Installer will attempt to download if missing)
+- **Database**: SQL Server Express 2019 or later (Must be installed separately)
+- **RAM**: Minimum 4GB recommended
+- **Disk Space**: 500MB free space
+
+## Installation Steps
+
+0. **Install SQL Server Express** (Prerequisite)
+   - Download and install SQL Server Express from Microsoft.
+   - During installation, use the "Basic" installation type.
+   - This will create a default instance named `SQLEXPRESS`.
+
+1. **Install Anchor POS**
+   - Run the `AnchorPOS_Setup_v1.0.0.exe`.
+   - Follow the on-screen instructions.
+
+2. **Launch the Application**
+   - After installation, launch Anchor POS from your desktop or Start menu
+
+3. **Default Login Credentials**
+   - Username: `admin`
+   - Password: `admin123`
+   
+   **IMPORTANT**: Change this password immediately after first login!
+
+4. **Configure Settings**
+   - Click the "SETTINGS" button (admin only)
+   - Configure your email settings for shift reports
+   - Update store information
+
+5. **Email Configuration (Gmail Example)**
+   - SMTP Host: `smtp.gmail.com`
+   - SMTP Port: `587`
+   - Username: Your Gmail address
+   - Password: App Password (not your regular password)
+   - From Email: Your Gmail address
+   
+   **Note**: For Gmail, you need to create an App Password:
+   - Go to Google Account → Security → 2-Step Verification → App passwords
+   - Generate a new app password for "Mail"
+   - Use this password in Anchor POS settings
+
+6. **Test Email**
+   - Use the "TEST EMAIL" button in Settings to verify your configuration
+
+## Features
+
+- ✅ Point of Sale with barcode scanning
+- ✅ Product management with stock tracking
+- ✅ User management (Admin/Salesperson roles)
+- ✅ Shift tracking and reporting
+- ✅ Automatic email reports on logout
+- ✅ Sales reports with date filtering
+- ✅ Audit trail for all actions
+- ✅ Receipt printing
+- ✅ Excel export for reports
+
+## Support
+
+For technical support or questions:
+- Email: support@anchorpos.com
+- Phone: [Your support number]
+
+## Data Backup
+
+Your database is stored in:
+`C:\Users\[YourUsername]\AppData\Roaming\AnchorPOS\Database`
+
+**Recommendation**: Regularly backup this folder to prevent data loss.
+
+---
+
+**Anchor POS System**
+Version 1.0.0

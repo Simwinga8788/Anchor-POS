@@ -1,0 +1,68 @@
+<Window x:Class="SurfPOS.Desktop.Views.RestockDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Restock Product" 
+        Height="350" 
+        Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource MaterialDesign.Brush.Background}">
+    
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                  Text="Restock Product"
+                  FontSize="24"
+                  FontWeight="Bold"
+                  Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1">
+            <TextBlock x:Name="ProductNameTextBlock"
+                      FontSize="16"
+                      FontWeight="SemiBold"
+                      Margin="0,0,0,10"/>
+
+            <TextBlock x:Name="CurrentStockTextBlock"
+                      FontSize="14"
+                      Opacity="0.7"
+                      Margin="0,0,0,20"/>
+
+            <TextBox x:Name="AdditionalStockTextBox"
+                    materialDesign:HintAssist.Hint="Additional Stock Quantity"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    FontSize="18"
+                    Margin="0,0,0,15"/>
+
+            <TextBlock x:Name="NewStockTextBlock"
+                      FontSize="14"
+                      FontWeight="SemiBold"
+                      Margin="0,0,0,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                   Content="CANCEL"
+                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                   Height="45"
+                   Click="CancelButton_Click"/>
+
+            <Button Grid.Column="2"
+                   Content="RESTOCK"
+                   Style="{StaticResource MaterialDesignRaisedButton}"
+                   Height="45"
+                   Click="RestockButton_Click"/>
+        </Grid>
+    </Grid>
+</Window>

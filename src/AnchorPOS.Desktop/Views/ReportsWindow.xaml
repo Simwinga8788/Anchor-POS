@@ -1,0 +1,268 @@
+<Window x:Class="SurfPOS.Desktop.Views.ReportsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Sales Reports" 
+        Height="900" 
+        Width="1600"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource MaterialDesign.Brush.Background}">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                Padding="20,15">
+            <Grid>
+                <TextBlock Text="📊 Sales Reports &amp; Analytics" 
+                          FontSize="24" 
+                          FontWeight="Bold"
+                          Foreground="White"
+                          VerticalAlignment="Center"/>
+                <Button Content="CLOSE"
+                       Style="{StaticResource MaterialDesignFlatButton}"
+                       Foreground="White"
+                       HorizontalAlignment="Right"
+                       Click="CloseButton_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Border Grid.Row="1" Margin="20">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Date Range Selector -->
+                <Border Grid.Row="0"
+                       Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                       CornerRadius="10"
+                       Padding="20"
+                       Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Report Period"
+                                  FontSize="16"
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" 
+                                      Text="From:" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,10,0"/>
+                            <DatePicker x:Name="StartDatePicker"
+                                       Grid.Column="1"
+                                       Style="{StaticResource MaterialDesignOutlinedDatePicker}"/>
+
+                            <TextBlock Grid.Column="3" 
+                                      Text="To:" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,10,0"/>
+                            <DatePicker x:Name="EndDatePicker"
+                                       Grid.Column="4"
+                                       Style="{StaticResource MaterialDesignOutlinedDatePicker}"/>
+
+                            <Button Grid.Column="6"
+                                   Content="GENERATE"
+                                   Style="{StaticResource MaterialDesignRaisedButton}"
+                                   Click="GenerateReportButton_Click"/>
+
+                             <Button Grid.Column="8"
+                                   Content="EXPORT EXCEL"
+                                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Click="ExportButton_Click"
+                                   Margin="10,0,0,0"/>
+                        </Grid>
+
+                        <!-- Quick Filters -->
+                        <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
+                            <Button Content="TODAY"
+                                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Margin="0,0,10,0"
+                                   Click="TodayButton_Click"/>
+                            <Button Content="THIS WEEK"
+                                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Margin="0,0,10,0"
+                                   Click="ThisWeekButton_Click"/>
+                            <Button Content="THIS MONTH"
+                                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Margin="0,0,10,0"
+                                   Click="ThisMonthButton_Click"/>
+                            <Button Content="MONTH TO DATE"
+                                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Margin="0,0,10,0"
+                                   Click="MonthToDateButton_Click"/>
+                            <Button Content="YEAR TO DATE"
+                                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Click="YearToDateButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Summary Cards -->
+                <Grid Grid.Row="1" Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Total Sales Card -->
+                    <Border Grid.Column="0"
+                           Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                           CornerRadius="10"
+                           Padding="20">
+                        <StackPanel>
+                            <TextBlock Text="💰 Total Sales"
+                                      FontSize="14"
+                                      Foreground="White"
+                                      Opacity="0.8"/>
+                            <TextBlock x:Name="TotalSalesTextBlock"
+                                      Text="$0.00"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      Foreground="White"
+                                      Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Transactions Card -->
+                    <Border Grid.Column="2"
+                           Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                           CornerRadius="10"
+                           Padding="20">
+                        <StackPanel>
+                            <TextBlock Text="🧾 Transactions"
+                                      FontSize="14"
+                                      Opacity="0.7"/>
+                            <TextBlock x:Name="TransactionsCountTextBlock"
+                                      Text="0"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Average Sale Card -->
+                    <Border Grid.Column="4"
+                           Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                           CornerRadius="10"
+                           Padding="20">
+                        <StackPanel>
+                            <TextBlock Text="📈 Average Sale"
+                                      FontSize="14"
+                                      Opacity="0.7"/>
+                            <TextBlock x:Name="AverageSaleTextBlock"
+                                      Text="$0.00"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Items Sold Card -->
+                    <Border Grid.Column="6"
+                           Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                           CornerRadius="10"
+                           Padding="20">
+                        <StackPanel>
+                            <TextBlock Text="📦 Items Sold"
+                                      FontSize="14"
+                                      Opacity="0.7"/>
+                            <TextBlock x:Name="ItemsSoldTextBlock"
+                                      Text="0"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Tabs -->
+                <TabControl Grid.Row="2" Style="{StaticResource MaterialDesignTabControl}">
+                    <TabItem Header="TRANSACTIONS HISTORY">
+                        <DataGrid x:Name="TransactionsDataGrid"
+                                 Margin="0,15,0,0"
+                                 AutoGenerateColumns="False"
+                                 CanUserAddRows="False"
+                                 CanUserDeleteRows="False"
+                                 IsReadOnly="True"
+                                 SelectionMode="Single"
+                                 Style="{StaticResource MaterialDesignDataGrid}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ref" Binding="{Binding TransactionRef}" Width="150"/>
+                                <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="160"/>
+                                <DataGridTextColumn Header="Salesperson" Binding="{Binding User.Username}" Width="120"/>
+                                <DataGridTextColumn Header="Items" Binding="{Binding TotalQuantity}" Width="80"/>
+                                <DataGridTextColumn Header="Payment" Binding="{Binding PaymentMethod}" Width="120"/>
+                                <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat=C2}" Width="120"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+                    
+                    <TabItem Header="PRODUCTS SOLD">
+                        <DataGrid x:Name="ProductsSoldDataGrid"
+                                 Margin="0,15,0,0"
+                                 AutoGenerateColumns="False"
+                                 CanUserAddRows="False"
+                                 CanUserDeleteRows="False"
+                                 IsReadOnly="True"
+                                 SelectionMode="Single"
+                                 Style="{StaticResource MaterialDesignDataGrid}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="*"/>
+                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150"/>
+                                <DataGridTextColumn Header="Qty Sold" Binding="{Binding QuantitySold}" Width="100"/>
+                                <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice, StringFormat=C2}" Width="100"/>
+                                <DataGridTextColumn Header="Total Revenue" Binding="{Binding TotalRevenue, StringFormat=C2}" Width="150"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
+                    <TabItem Header="AUDIT LOGS">
+                        <DataGrid x:Name="AuditLogsDataGrid"
+                                 Margin="0,15,0,0"
+                                 AutoGenerateColumns="False"
+                                 CanUserAddRows="False"
+                                 CanUserDeleteRows="False"
+                                 IsReadOnly="True"
+                                 SelectionMode="Single"
+                                 Style="{StaticResource MaterialDesignDataGrid}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="160"/>
+                                <DataGridTextColumn Header="User" Binding="{Binding User.Username}" Width="120"/>
+                                <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="150"/>
+                                <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,139 @@
+<Window x:Class="SurfPOS.Desktop.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Settings" 
+        Height="600" 
+        Width="700"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="{DynamicResource MaterialDesign.Brush.Background}">
+    
+    <Grid Margin="40">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                  Text="Application Settings"
+                  FontSize="28"
+                  FontWeight="Bold"
+                  Margin="0,0,0,30"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Email Settings -->
+                <TextBlock Text="Email Configuration"
+                          FontSize="20"
+                          FontWeight="SemiBold"
+                          Margin="0,0,0,15"/>
+                
+                <TextBox x:Name="AdminEmailTextBox"
+                        materialDesign:HintAssist.Hint="Admin Email Address"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+
+                <TextBox x:Name="SmtpHostTextBox"
+                        materialDesign:HintAssist.Hint="SMTP Host (e.g., smtp.gmail.com)"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+
+                <TextBox x:Name="SmtpPortTextBox"
+                        materialDesign:HintAssist.Hint="SMTP Port (e.g., 587)"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+
+                <TextBox x:Name="SmtpUsernameTextBox"
+                        materialDesign:HintAssist.Hint="SMTP Username"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+
+                <PasswordBox x:Name="SmtpPasswordBox"
+                            materialDesign:HintAssist.Hint="SMTP Password"
+                            Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                            Margin="0,0,0,15"
+                            FontSize="14"/>
+
+                <TextBox x:Name="FromEmailTextBox"
+                        materialDesign:HintAssist.Hint="From Email Address"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,30"
+                        FontSize="14"/>
+
+                <!-- WhatsApp Settings -->
+                <TextBlock Text="WhatsApp Configuration"
+                          FontSize="20"
+                          FontWeight="SemiBold"
+                          Margin="0,20,0,15"/>
+
+                <TextBox x:Name="AdminPhoneTextBox"
+                        materialDesign:HintAssist.Hint="Admin Phone Number (with country code, e.g., +263771234567)"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+
+                <TextBlock Text="Note: WhatsApp will open in your browser with the report details. You'll need to manually attach the file."
+                          TextWrapping="Wrap"
+                          Opacity="0.6"
+                          FontSize="12"
+                          Margin="0,0,0,30"/>
+
+                <!-- Store Settings -->
+                <TextBlock Text="Store Information"
+                          FontSize="20"
+                          FontWeight="SemiBold"
+                          Margin="0,20,0,15"/>
+
+                <TextBox x:Name="StoreNameTextBox"
+                        materialDesign:HintAssist.Hint="Store Name"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+
+                <TextBox x:Name="StoreAddressTextBox"
+                        materialDesign:HintAssist.Hint="Store Address"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+
+                <TextBox x:Name="StorePhoneTextBox"
+                        materialDesign:HintAssist.Hint="Store Phone"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Margin="0,0,0,15"
+                        FontSize="14"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" 
+                   Orientation="Horizontal" 
+                   HorizontalAlignment="Right"
+                   Margin="0,30,0,0">
+            <Button Content="TEST EMAIL"
+                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                   Width="150"
+                   Height="45"
+                   FontSize="14"
+                   Margin="0,0,15,0"
+                   Click="TestEmailButton_Click"/>
+            <Button Content="SAVE SETTINGS"
+                   Style="{StaticResource MaterialDesignRaisedButton}"
+                   Width="150"
+                   Height="45"
+                   FontSize="14"
+                   Margin="0,0,15,0"
+                   Click="SaveButton_Click"/>
+            <Button Content="CLOSE"
+                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                   Width="120"
+                   Height="45"
+                   FontSize="14"
+                   Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

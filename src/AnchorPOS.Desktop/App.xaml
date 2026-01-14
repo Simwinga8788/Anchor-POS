@@ -1,0 +1,46 @@
+﻿<Application x:Class="SurfPOS.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SurfPOS.Desktop"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Amber" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Softer Background Colors -->
+            <SolidColorBrush x:Key="MaterialDesignPaper" Color="#F5F5F5"/>
+            <SolidColorBrush x:Key="MaterialDesignBackground" Color="#FAFAFA"/>
+            <SolidColorBrush x:Key="MaterialDesignCardBackground" Color="#FFFFFF"/>
+            
+            <!-- Global Font and Sizing Improvements -->
+            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+            
+            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="MinHeight" Value="36"/>
+            </Style>
+            
+            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Type ComboBox}}">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="MinHeight" Value="36"/>
+            </Style>
+            
+            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="MinHeight" Value="40"/>
+                <Setter Property="Padding" Value="16,8"/>
+            </Style>
+            
+            <Style TargetType="{x:Type DataGrid}" BasedOn="{StaticResource {x:Type DataGrid}}">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="RowHeight" Value="40"/>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
+
