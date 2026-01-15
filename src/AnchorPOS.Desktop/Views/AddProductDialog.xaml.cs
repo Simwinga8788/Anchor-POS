@@ -11,11 +11,20 @@ namespace SurfPOS.Desktop.Views
         private readonly IProductService _productService;
         private string? _scannedBarcode;
 
-        public AddProductDialog(IProductService productService)
+        public AddProductDialog(IProductService productService, IEnumerable<string>? categories = null)
         {
             InitializeComponent();
             _productService = productService;
             BarcodeTextBox.Focus();
+
+            if (categories != null)
+            {
+                CategoryComboBox.ItemsSource = categories;
+            }
+            else
+            {
+                CategoryComboBox.ItemsSource = new List<string> { "Hair Products", "Wigs", "Perfumes", "Makeup", "Clothes", "General" };
+            }
         }
 
         private async void BarcodeTextBox_KeyDown(object sender, KeyEventArgs e)

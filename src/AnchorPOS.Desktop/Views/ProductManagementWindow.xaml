@@ -64,18 +64,11 @@
 
                     <!-- Filter -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
-                        <ComboBox x:Name="CategoryFilterComboBox"
+                        <ComboBox x:Name="CategoryFilterComboBox" IsEditable="True"
                                  materialDesign:HintAssist.Hint="Filter by Category"
                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                  Width="200"
-                                 SelectionChanged="CategoryFilterComboBox_SelectionChanged">
-                            <ComboBoxItem Content="All Categories" IsSelected="True"/>
-                            <ComboBoxItem Content="Hair Products"/>
-                            <ComboBoxItem Content="Wigs"/>
-                            <ComboBoxItem Content="Perfumes"/>
-                            <ComboBoxItem Content="Makeup"/>
-                            <ComboBoxItem Content="Clothes"/>
-                        </ComboBox>
+                                 SelectionChanged="CategoryFilterComboBox_SelectionChanged"/>
                         
                         <CheckBox x:Name="LowStockCheckBox"
                                  Content="Low Stock Only"
@@ -172,17 +165,10 @@
                                 Margin="0,0,0,15"/>
 
                         <!-- Category -->
-                        <ComboBox x:Name="CategoryComboBox"
+                        <ComboBox x:Name="CategoryComboBox" IsEditable="True"
                                  materialDesign:HintAssist.Hint="Category"
                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                 Margin="0,0,0,15">
-                            <ComboBoxItem Content="Hair Products"/>
-                            <ComboBoxItem Content="Wigs"/>
-                            <ComboBoxItem Content="Perfumes"/>
-                            <ComboBoxItem Content="Makeup"/>
-                            <ComboBoxItem Content="Clothes"/>
-                            <ComboBoxItem Content="General"/>
-                        </ComboBox>
+                                 Margin="0,0,0,15"/>
 
                         <!-- Price -->
                         <TextBox x:Name="PriceTextBox"

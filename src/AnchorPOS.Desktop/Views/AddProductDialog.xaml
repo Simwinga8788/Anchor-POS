@@ -61,17 +61,10 @@
                         Margin="0,0,0,15"/>
 
                 <!-- Category -->
-                <ComboBox x:Name="CategoryComboBox"
+                <ComboBox x:Name="CategoryComboBox" IsEditable="True"
                          materialDesign:HintAssist.Hint="Category *"
                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                         Margin="0,0,0,15">
-                    <ComboBoxItem Content="Hair Products"/>
-                    <ComboBoxItem Content="Wigs"/>
-                    <ComboBoxItem Content="Perfumes"/>
-                    <ComboBoxItem Content="Makeup"/>
-                    <ComboBoxItem Content="Clothes"/>
-                    <ComboBoxItem Content="General" IsSelected="True"/>
-                </ComboBox>
+                         Margin="0,0,0,15"/>
 
                 <!-- Price -->
                 <TextBox x:Name="PriceTextBox"

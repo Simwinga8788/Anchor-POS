@@ -46,6 +46,7 @@ namespace SurfPOS.Desktop.Views
                 {
                     _allProducts.Add(product);
                 }
+                UpdateCategoryLists();
                 ApplyFilters();
             }
             catch (Exception ex)
@@ -53,6 +54,44 @@ namespace SurfPOS.Desktop.Views
                 MessageBox.Show($"Error loading products: {ex.Message}", "Error", 
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void UpdateCategoryLists()
+        {
+            if (_allProducts == null) return;
+
+            var categories = _allProducts
+                .Select(p => p.Category)
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Distinct()
+                .ToList();
+
+            var defaults = new[] { "Hair Products", "Wigs", "Perfumes", "Makeup", "Clothes", "General" };
+            foreach (var def in defaults)
+            {
+                if (!categories.Any(c => c.Equals(def, StringComparison.OrdinalIgnoreCase)))
+                    categories.Add(def);
+            }
+            categories.Sort();
+
+            // Update Filter
+            // Allow "All Categories" as first item
+            var filterItems = new ObservableCollection<string> { "All Categories" };
+            foreach (var c in categories) filterItems.Add(c);
+
+            // Save selection (try to preserve)
+            var currentSelection = CategoryFilterComboBox.SelectedIndex;
+
+            // Temporarily detach handler to prevent double firing? No, let it fire.
+            CategoryFilterComboBox.ItemsSource = filterItems;
+            
+            if (currentSelection >= 0 && currentSelection < filterItems.Count)
+                CategoryFilterComboBox.SelectedIndex = currentSelection;
+            else
+                CategoryFilterComboBox.SelectedIndex = 0;
+
+            // Update Editor
+            CategoryComboBox.ItemsSource = new ObservableCollection<string>(categories);
         }
 
         private void ApplyFilters()
@@ -76,7 +115,8 @@ namespace SurfPOS.Desktop.Views
             // Category filter
             if (CategoryFilterComboBox?.SelectedIndex > 0)
             {
-                string category = ((ComboBoxItem)CategoryFilterComboBox.SelectedItem).Content.ToString()!;
+                var selected = CategoryFilterComboBox.SelectedItem;
+                string category = selected is ComboBoxItem cbi ? cbi.Content?.ToString()! : selected?.ToString()!;
                 filtered = filtered.Where(p => p.Category == category);
             }
 
@@ -152,7 +192,8 @@ namespace SurfPOS.Desktop.Views
 
         private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            var addDialog = new AddProductDialog(_productService);
+            var categories = CategoryComboBox.ItemsSource as IEnumerable<string>;
+            var addDialog = new AddProductDialog(_productService, categories);
             if (addDialog.ShowDialog() == true)
             {
                 await LoadProducts();
