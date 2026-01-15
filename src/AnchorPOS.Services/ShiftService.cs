@@ -54,9 +54,7 @@ namespace SurfPOS.Services
 
             // Calculate shift statistics
             var shiftTransactions = await _context.Transactions
-                .Where(t => t.UserId == shift.UserId && 
-                           t.Date >= shift.StartTime && 
-                           t.Date <= DateTime.Now)
+                .Where(t => t.ShiftId == shift.Id)
                 .ToListAsync();
 
             shift.EndTime = DateTime.Now;
@@ -120,9 +118,7 @@ namespace SurfPOS.Services
             var transactions = await _context.Transactions
                 .Include(t => t.Items)
                     .ThenInclude(i => i.Product)
-                .Where(t => t.UserId == shift.UserId && 
-                           t.Date >= shift.StartTime && 
-                           (!shift.EndTime.HasValue || t.Date <= shift.EndTime.Value))
+                .Where(t => t.ShiftId == shiftId)
                 .ToListAsync();
 
             // Create folder for shift reports
