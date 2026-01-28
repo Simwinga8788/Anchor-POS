@@ -24,7 +24,7 @@ The application has a compatibility issue with the EPPlus Excel library that's p
 ### Option 2: Run from Command Line
 ```powershell
 cd "C:\Users\simwi\Desktop\Surf POS"
-dotnet run --project src/SurfPOS.Desktop/SurfPOS.Desktop.csproj
+taskkill /F /IM AnchorPOS.Desktop.exe 2>$null; dotnet run --project src\AnchorPOS.Desktop\AnchorPOS.Desktop.csproj
 ```
 
 ### Option 3: Run the EXE Directly

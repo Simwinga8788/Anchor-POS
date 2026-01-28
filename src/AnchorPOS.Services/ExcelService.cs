@@ -48,6 +48,7 @@ namespace SurfPOS.Services
             {
                 try
                 {
+                    var barcode = GetCellValue(row, "Barcode", "Code", "Bar Code");
                     var name = GetCellValue(row, "Name", "Product Name", "ProductName", "Item Name");
                     var category = GetCellValue(row, "Category", "Product Category", "Type");
                     var priceStr = GetCellValue(row, "Price", "Selling Price", "Sale Price", "Unit Price");
@@ -60,6 +61,7 @@ namespace SurfPOS.Services
 
                     var product = new Product
                     {
+                        Barcode = barcode,
                         Name = name,
                         Category = string.IsNullOrWhiteSpace(category) ? "General" : category,
                         Price = decimal.TryParse(priceStr, out decimal price) ? price : 0,
@@ -330,32 +332,34 @@ namespace SurfPOS.Services
             var worksheet = workbook.Worksheets.Add("Product Import Template");
 
             // Headers
-            worksheet.Cell(1, 1).Value = "Name *";
-            worksheet.Cell(1, 2).Value = "Category";
-            worksheet.Cell(1, 3).Value = "Price *";
-            worksheet.Cell(1, 4).Value = "Cost Price *";
-            worksheet.Cell(1, 5).Value = "Stock Quantity";
-            worksheet.Cell(1, 6).Value = "Low Stock Threshold";
+            worksheet.Cell(1, 1).Value = "Barcode";
+            worksheet.Cell(1, 2).Value = "Name *";
+            worksheet.Cell(1, 3).Value = "Category";
+            worksheet.Cell(1, 4).Value = "Price *";
+            worksheet.Cell(1, 5).Value = "Cost Price *";
+            worksheet.Cell(1, 6).Value = "Stock Quantity";
+            worksheet.Cell(1, 7).Value = "Low Stock Threshold";
 
             // Style headers
-            var headerRange = worksheet.Range(1, 1, 1, 6);
+            var headerRange = worksheet.Range(1, 1, 1, 7);
             headerRange.Style.Font.Bold = true;
             headerRange.Style.Fill.BackgroundColor = XLColor.LightGreen;
 
             // Sample data
-            worksheet.Cell(2, 1).Value = "Sample Product";
-            worksheet.Cell(2, 2).Value = "General";
-            worksheet.Cell(2, 3).Value = 10.99;
-            worksheet.Cell(2, 4).Value = 5.00;
-            worksheet.Cell(2, 5).Value = 100;
-            worksheet.Cell(2, 6).Value = 10;
+            worksheet.Cell(2, 1).Value = "A1000";
+            worksheet.Cell(2, 2).Value = "Sample Product";
+            worksheet.Cell(2, 3).Value = "General";
+            worksheet.Cell(2, 4).Value = 10.99;
+            worksheet.Cell(2, 5).Value = 5.00;
+            worksheet.Cell(2, 6).Value = 100;
+            worksheet.Cell(2, 7).Value = 10;
 
             // Instructions
             worksheet.Cell(4, 1).Value = "Instructions:";
             worksheet.Cell(4, 1).Style.Font.Bold = true;
             worksheet.Cell(5, 1).Value = "1. Fill in product details starting from row 2";
             worksheet.Cell(6, 1).Value = "2. Fields marked with * are required";
-            worksheet.Cell(7, 1).Value = "3. Barcodes will be auto-generated on import";
+            worksheet.Cell(7, 1).Value = "3. Barcode: Enter valid barcode OR leave blank to auto-generate";
             worksheet.Cell(8, 1).Value = "4. Categories: Hair Products, Wigs, Perfumes, Makeup, Clothes, General";
 
             worksheet.Columns().AdjustToContents();

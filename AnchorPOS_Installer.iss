@@ -18,9 +18,9 @@ AllowNoIcons=yes
 LicenseFile=LICENSE.txt
 InfoBeforeFile=INSTALLATION_NOTES.txt
 OutputDir=installer_output
-OutputBaseFilename=AnchorPOS_Setup_v{#MyAppVersion}
+OutputBaseFilename=AnchorPOS_Setup_v1.0.1
 ; Only enable icon if it exists
-; SetupIconFile=icon.ico
+SetupIconFile=icon.ico
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
@@ -33,7 +33,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
 
 [Files]
