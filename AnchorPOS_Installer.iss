@@ -1,5 +1,5 @@
 #define MyAppName "Anchor POS"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Anchor POS Team"
 #define MyAppExeName "AnchorPOS.Desktop.exe"
 #define MyAppAssocName MyAppName + " File"
@@ -18,7 +18,7 @@ AllowNoIcons=yes
 LicenseFile=LICENSE.txt
 InfoBeforeFile=INSTALLATION_NOTES.txt
 OutputDir=installer_output
-OutputBaseFilename=AnchorPOS_Setup_v1.0.1
+OutputBaseFilename=AnchorPOS_Setup_v1.1.0
 ; Only enable icon if it exists
 SetupIconFile=icon.ico
 Compression=lzma2/max
@@ -39,7 +39,8 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 [Files]
 ; Main application files
 Source: "src\AnchorPOS.Desktop\bin\Release\net10.0-windows\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+; SQL Server Express Installer (must be in the project root)
+Source: "sql_express_installer.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Check: NeedsSqlInstance
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -49,8 +50,31 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+; Silent install SQL Server Express
+Filename: "{tmp}\sql_express_installer.exe"; \
+    Parameters: "/QS /ACTION=Install /FEATURES=SQL /INSTANCENAME=SQLEXPRESS /SQLSVCACCOUNT=""NT AUTHORITY\NetworkService"" /SQLSYSADMINACCOUNTS=""Builtin\Administrators"" /TCPENABLED=1 /NPENABLED=1 /IACCEPTSQLSERVERLICENSETERMS"; \
+    Check: NeedsSqlInstance; \
+    StatusMsg: "Installing SQL Server Express (this may take a few minutes)..."; \
+    Flags: waituntilterminated
 
 [Code]
+function NeedsSqlInstance(): Boolean;
+var
+  Instances: String;
+begin
+  // Check if SQLEXPRESS instance name exists in registry
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL', 'SQLEXPRESS', Instances) then
+  begin
+    // Instance found
+    Result := False;
+  end
+  else
+  begin
+    // Instance not found, we need to install it
+    Result := True;
+  end;
+end;
+
 function InitializeSetup(): Boolean;
 begin
   Result := True;
