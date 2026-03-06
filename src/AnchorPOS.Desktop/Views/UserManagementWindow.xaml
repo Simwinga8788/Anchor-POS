@@ -139,8 +139,15 @@
                             <Button x:Name="DeactivateButton"
                                    Content="DEACTIVATE USER"
                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Margin="0,0,0,10"
                                    IsEnabled="False"
                                    Click="DeactivateButton_Click"/>
+                            <Button x:Name="DeleteButton"
+                                   Content="DELETE PERMANENTLY"
+                                   Style="{StaticResource MaterialDesignOutlinedButton}"
+                                   Foreground="#E53935"
+                                   IsEnabled="False"
+                                   Click="DeleteButton_Click"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

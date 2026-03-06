@@ -11,19 +11,35 @@ namespace SurfPOS.Desktop.Views
         private List<User> _users;
         private User? _selectedUser;
 
+        private bool _isBusy;
+
         public UserManagementWindow(IUserService userService)
         {
             InitializeComponent();
             _userService = userService;
             _users = new List<User>();
-            LoadUsers();
+            
+            Loaded += async (s, e) => await LoadUsers();
         }
 
-        private async void LoadUsers()
+        private void SetBusy(bool busy)
         {
+            _isBusy = busy;
+            AddButton.IsEnabled = !busy;
+            UpdateButton.IsEnabled = !busy && _selectedUser != null;
+            ChangePasswordButton.IsEnabled = !busy && _selectedUser != null;
+            DeactivateButton.IsEnabled = !busy && (_selectedUser?.IsActive ?? false);
+            DeleteButton.IsEnabled = !busy && _selectedUser != null;
+            UsersDataGrid.IsEnabled = !busy;
+        }
+
+        private async Task LoadUsers()
+        {
+            if (_isBusy) return;
             try
             {
                 _users = await _userService.GetAllUsersAsync();
+                UsersDataGrid.ItemsSource = null; // Reset binding
                 UsersDataGrid.ItemsSource = _users;
             }
             catch (Exception ex)
@@ -47,7 +63,8 @@ namespace SurfPOS.Desktop.Views
                 UpdateButton.IsEnabled = true;
                 ChangePasswordButton.IsEnabled = true;
                 DeactivateButton.IsEnabled = _selectedUser.IsActive;
-                AddButton.Content = "ADD NEW USER";
+                DeleteButton.IsEnabled = true;
+                AddButton.Content = "CLEAR SELECTION";
             }
             else
             {
@@ -57,6 +74,14 @@ namespace SurfPOS.Desktop.Views
 
         private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isBusy) return;
+
+            if (AddButton.Content.ToString() == "CLEAR SELECTION")
+            {
+                ClearForm();
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(UsernameTextBox.Text))
             {
                 MessageBox.Show("Please enter a username", "Validation",
@@ -73,6 +98,7 @@ namespace SurfPOS.Desktop.Views
 
             try
             {
+                SetBusy(true);
                 var role = (UserRole)int.Parse(((ComboBoxItem)RoleComboBox.SelectedItem).Tag.ToString()!);
                 
                 await _userService.CreateUserAsync(
@@ -84,21 +110,35 @@ namespace SurfPOS.Desktop.Views
                     MessageBoxButton.OK, MessageBoxImage.Information);
 
                 ClearForm();
-                LoadUsers();
+                await LoadUsers();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error creating user: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                string msg = ex.InnerException?.Message ?? ex.Message;
+                if (msg.Contains("duplicate") || msg.Contains("unique"))
+                {
+                    MessageBox.Show($"The username '{UsernameTextBox.Text}' is already in use.", 
+                        "Duplicate Username", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show($"Error creating user: {ex.Message}", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedUser == null) return;
+            if (_selectedUser == null || _isBusy) return;
 
             try
             {
+                SetBusy(true);
                 var role = (UserRole)int.Parse(((ComboBoxItem)RoleComboBox.SelectedItem).Tag.ToString()!);
                 
                 await _userService.UpdateUserAsync(
@@ -107,15 +147,26 @@ namespace SurfPOS.Desktop.Views
                     role,
                     IsActiveCheckBox.IsChecked ?? true);
 
+                // Also update password if provided
+                if (!string.IsNullOrWhiteSpace(PasswordBox.Password))
+                {
+                    await _userService.ChangePasswordAsync(_selectedUser.Id, PasswordBox.Password);
+                    PasswordBox.Password = "";
+                }
+
                 MessageBox.Show("User updated successfully!", "Success",
                     MessageBoxButton.OK, MessageBoxImage.Information);
 
-                LoadUsers();
+                await LoadUsers();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error updating user: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
@@ -156,7 +207,7 @@ namespace SurfPOS.Desktop.Views
 
         private async void DeactivateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedUser == null) return;
+            if (_selectedUser == null || _isBusy) return;
 
             var result = MessageBox.Show(
                 $"Deactivate user '{_selectedUser.Username}'?",
@@ -168,17 +219,65 @@ namespace SurfPOS.Desktop.Views
 
             try
             {
+                SetBusy(true);
                 await _userService.DeactivateUserAsync(_selectedUser.Id);
 
                 MessageBox.Show("User deactivated successfully!", "Success",
                     MessageBoxButton.OK, MessageBoxImage.Information);
 
-                LoadUsers();
+                await LoadUsers();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error deactivating user: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                SetBusy(false);
+            }
+        }
+
+        private async void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedUser == null || _isBusy) return;
+
+            var result = MessageBox.Show(
+                $"Permanently delete user '{_selectedUser.Username}'?\n\nThis cannot be undone and will fail if the user has sales history.",
+                "Confirm Permanent Deletion",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                SetBusy(true);
+                await _userService.DeleteUserAsync(_selectedUser.Id);
+
+                MessageBox.Show("User deleted permanently!", "Success",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                ClearForm();
+                await LoadUsers();
+            }
+            catch (Exception ex)
+            {
+                string msg = ex.InnerException?.Message ?? ex.Message;
+                if (msg.Contains("REFERENCE constraint") || msg.Contains("foreign key"))
+                {
+                    MessageBox.Show($"Cannot delete user '{_selectedUser.Username}' because they have transaction history. Deactivate them instead.", 
+                        "Cannot Delete", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show($"Error deleting user: {ex.Message}", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
@@ -196,6 +295,7 @@ namespace SurfPOS.Desktop.Views
             UpdateButton.IsEnabled = false;
             ChangePasswordButton.IsEnabled = false;
             DeactivateButton.IsEnabled = false;
+            DeleteButton.IsEnabled = false;
             AddButton.Content = "ADD NEW USER";
             _selectedUser = null;
         }

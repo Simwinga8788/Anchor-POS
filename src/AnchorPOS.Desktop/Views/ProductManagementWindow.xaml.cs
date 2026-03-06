@@ -40,7 +40,9 @@ namespace SurfPOS.Desktop.Views
         {
             try
             {
-                var products = await _productService.GetAllProductsAsync();
+                bool showDeleted = ShowDeletedCheckBox?.IsChecked ?? false;
+                var products = await _productService.GetAllProductsAsync(showDeleted);
+                
                 _allProducts.Clear();
                 foreach (var product in products)
                 {
@@ -56,6 +58,11 @@ namespace SurfPOS.Desktop.Views
             }
         }
 
+        private async void ShowDeletedCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            await LoadProducts();
+        }
+
         private void UpdateCategoryLists()
         {
             if (_allProducts == null) return;
@@ -66,7 +73,7 @@ namespace SurfPOS.Desktop.Views
                 .Distinct()
                 .ToList();
 
-            var defaults = new[] { "Hair Products", "Wigs", "Perfumes", "Makeup", "Clothes", "General" };
+            var defaults = new[] { "General" };
             foreach (var def in defaults)
             {
                 if (!categories.Any(c => c.Equals(def, StringComparison.OrdinalIgnoreCase)))
@@ -160,11 +167,16 @@ namespace SurfPOS.Desktop.Views
                 _selectedProduct = product;
                 LoadProductDetails(product);
                 EditPanel.IsEnabled = true;
+                if (SaveButton != null) SaveButton.IsEnabled = true;
+                if (RestockButton != null) RestockButton.IsEnabled = true;
             }
             else
             {
+                _selectedProduct = null;
                 EditPanel.IsEnabled = false;
                 ClearForm();
+                if (SaveButton != null) SaveButton.IsEnabled = false;
+                if (RestockButton != null) RestockButton.IsEnabled = false;
             }
         }
 
@@ -245,7 +257,17 @@ namespace SurfPOS.Desktop.Views
                     return;
                 }
 
-                // Update product
+                // Barcode Validation
+                string newBarcode = BarcodeTextBox.Text.Trim();
+                if (string.IsNullOrWhiteSpace(newBarcode))
+                {
+                     MessageBox.Show("Barcode cannot be empty!", "Validation Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                     return;
+                }
+
+                // Assign values
+                _selectedProduct.Barcode = newBarcode; // Now editable
                 _selectedProduct.Name = NameTextBox.Text.Trim();
                 _selectedProduct.Category = CategoryComboBox.Text;
                 _selectedProduct.Price = price;
@@ -261,23 +283,71 @@ namespace SurfPOS.Desktop.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving product: {ex.Message}", "Error", 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                string msg = ex.InnerException?.Message ?? ex.Message;
+                if (msg.Contains("duplicate key") || msg.Contains("unique index"))
+                {
+                     MessageBox.Show($"The barcode '{BarcodeTextBox.Text}' is already in use by another product (active or deleted).", 
+                         "Duplicate Barcode", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show($"Error updating product: {ex.Message}", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
         private async void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
+            // Check for multiple checkbox selections first
+            var batchSelection = _filteredProducts.Where(p => p.IsSelected).ToList();
+
+            if (batchSelection.Count > 0)
+            {
+                var result = MessageBox.Show(
+                    $"Are you sure you want to delete {batchSelection.Count} selected products?\nThis action cannot be undone.",
+                    "Confirm Batch Delete",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        int deletedCount = 0;
+                        foreach (var product in batchSelection)
+                        {
+                            await _productService.DeleteProductAsync(product.Id);
+                            deletedCount++;
+                        }
+
+                        await LoadProducts();
+                        ClearForm();
+                        EditPanel.IsEnabled = false;
+
+                        MessageBox.Show($"Successfully deleted {deletedCount} products.", "Success", 
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error deleting products: {ex.Message}", "Error", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                return;
+            }
+
+            // Fallback to single row selection
             if (_selectedProduct == null)
                 return;
 
-            var result = MessageBox.Show(
+            var singleResult = MessageBox.Show(
                 $"Are you sure you want to delete '{_selectedProduct.Name}'?\nThis action cannot be undone.",
                 "Confirm Delete",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
-            if (result == MessageBoxResult.Yes)
+            if (singleResult == MessageBoxResult.Yes)
             {
                 try
                 {
@@ -485,22 +555,29 @@ namespace SurfPOS.Desktop.Views
                 var openFileDialog = new Microsoft.Win32.OpenFileDialog
                 {
                     Filter = "Excel Files|*.xlsx;*.xls",
-                    Title = "Select Excel File to Import"
+                    Title = "Select Excel Files to Import",
+                    Multiselect = true
                 };
 
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    var products = await _excelService.ImportProductsFromExcelAsync(openFileDialog.FileName);
+                    var allProducts = new System.Collections.Generic.List<SurfPOS.Core.Entities.Product>();
 
-                    if (products.Count == 0)
+                    foreach (string fileName in openFileDialog.FileNames)
                     {
-                        MessageBox.Show("No valid products found in the Excel file!", "Import Failed", 
+                        var products = await _excelService.ImportProductsFromExcelAsync(fileName);
+                        allProducts.AddRange(products);
+                    }
+
+                    if (allProducts.Count == 0)
+                    {
+                        MessageBox.Show("No valid products found in the selected Excel files!", "Import Failed", 
                             MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
 
                     var result = MessageBox.Show(
-                        $"Found {products.Count} products to import.\n\nBarcodes will be auto-generated.\n\nContinue?",
+                        $"Found {allProducts.Count} products across {openFileDialog.FileNames.Length} file(s).\n\nBarcodes will be auto-generated if missing.\n\nContinue?",
                         "Confirm Import",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Question);
@@ -508,21 +585,87 @@ namespace SurfPOS.Desktop.Views
                     if (result == MessageBoxResult.Yes)
                     {
                         int imported = 0;
-                        foreach (var product in products)
+                        int correctedBarcodes = 0;
+                        var errors = new System.Collections.Generic.List<string>();
+
+                        foreach (var product in allProducts)
                         {
-                            await _productService.AddProductAsync(product);
-                            imported++;
+                            try
+                            {
+                                // Check if barcode is already taken by ANOTHER product
+                                if (!string.IsNullOrWhiteSpace(product.Barcode))
+                                {
+                                    var existing = await _productService.GetProductByBarcodeAsync(product.Barcode);
+                                    if (existing != null)
+                                    {
+                                        product.Barcode = null; // Auto-generate new unique barcode
+                                        correctedBarcodes++;
+                                    }
+                                }
+
+                                await _productService.AddProductAsync(product);
+                                imported++;
+                            }
+                            catch (Exception ex)
+                            {
+                                string innerMsg = ex.InnerException?.Message ?? ex.Message;
+                                
+                                // Retry on duplicate key error (which happens if GetProductByBarcodeAsync missed an inactive product)
+                                if (innerMsg.Contains("duplicate key") || innerMsg.Contains("unique index"))
+                                {
+                                    try
+                                    {
+                                        product.Barcode = null; // Reset to auto-generate (SURFxxxxx)
+                                        await _productService.AddProductAsync(product); // Retry add
+                                        imported++;
+                                        correctedBarcodes++;
+                                        continue;
+                                    }
+                                    catch (Exception retryEx)
+                                    {
+                                        innerMsg = $"Retry failed: {retryEx.InnerException?.Message ?? retryEx.Message}";
+                                    }
+                                }
+
+                                errors.Add($"'{product.Name}': {innerMsg}");
+                            }
                         }
 
                         await LoadProducts();
-                        MessageBox.Show($"Successfully imported {imported} products!", "Success", 
-                            MessageBoxButton.OK, MessageBoxImage.Information);
+
+                        string summary = $"Successfully imported {imported} products!";
+                        if (correctedBarcodes > 0)
+                        {
+                            summary += $"\n\nNote: {correctedBarcodes} products had duplicate barcodes. New unique barcodes were automatically assigned.";
+                        }
+
+                        if (errors.Count > 0)
+                        {
+                            string errorMsg = $"{summary}\n\nFailed to import {errors.Count} products:\n\n" + 
+                                              string.Join("\n", errors.Take(10));
+                            
+                            if (errors.Count > 10) 
+                                errorMsg += $"\n...and {errors.Count - 10} more errors.";
+
+                            MessageBox.Show(errorMsg, "Import Completed with Warnings", 
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                        else
+                        {
+                            MessageBox.Show(summary, "Success", 
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error importing products: {ex.Message}", "Error", 
+                var message = ex.Message;
+                if (ex.InnerException != null)
+                {
+                    message += $"\n\nDetails: {ex.InnerException.Message}";
+                }
+                MessageBox.Show($"Error importing products: {message}", "Import Error", 
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

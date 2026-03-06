@@ -76,6 +76,13 @@
                                  VerticalAlignment="Center"
                                  Checked="LowStockCheckBox_Changed"
                                  Unchecked="LowStockCheckBox_Changed"/>
+
+                        <CheckBox x:Name="ShowDeletedCheckBox"
+                                 Content="Show Deleted"
+                                 Margin="20,0,0,0"
+                                 VerticalAlignment="Center"
+                                 Checked="ShowDeletedCheckBox_Changed"
+                                 Unchecked="ShowDeletedCheckBox_Changed"/>
                     </StackPanel>
 
                     <!-- DataGrid -->
@@ -84,7 +91,7 @@
                              AutoGenerateColumns="False"
                              CanUserAddRows="False"
                              CanUserDeleteRows="False"
-                             IsReadOnly="True"
+                             IsReadOnly="False"
                              SelectionMode="Extended"
                              SelectionChanged="ProductsDataGrid_SelectionChanged"
                              Style="{StaticResource MaterialDesignDataGrid}">
@@ -99,13 +106,13 @@
                                              ToolTip="Select/Deselect All"/>
                                 </DataGridCheckBoxColumn.Header>
                             </DataGridCheckBoxColumn>
-                            <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="120"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120"/>
-                            <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat={}K{0:N2}}" Width="100"/>
-                            <DataGridTextColumn Header="Cost" Binding="{Binding CostPrice, StringFormat={}K{0:N2}}" Width="100"/>
-                            <DataGridTextColumn Header="Stock" Binding="{Binding StockQuantity}" Width="80"/>
-                            <DataGridTextColumn Header="Threshold" Binding="{Binding LowStockThreshold}" Width="90"/>
+                            <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="120" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat={}K{0:N2}}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Cost" Binding="{Binding CostPrice, StringFormat={}K{0:N2}}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Stock" Binding="{Binding StockQuantity}" Width="80" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Threshold" Binding="{Binding LowStockThreshold}" Width="90" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -145,62 +152,65 @@
                     CornerRadius="10"
                     Padding="20">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="EditPanel" IsEnabled="False">
-                        <TextBlock Text="Product Details"
-                                  FontSize="18"
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,0,20"/>
+                    <StackPanel>
+                        <StackPanel x:Name="EditPanel" IsEnabled="False">
+                            <TextBlock Text="Product Details"
+                                      FontSize="18"
+                                      FontWeight="SemiBold"
+                                      Margin="0,0,0,20"/>
 
-                        <!-- Barcode -->
-                        <TextBox x:Name="BarcodeTextBox"
-                                materialDesign:HintAssist.Hint="Barcode"
-                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                Margin="0,0,0,15"
-                                IsReadOnly="True"/>
+                            <!-- Barcode -->
+                            <TextBox x:Name="BarcodeTextBox"
+                                    materialDesign:HintAssist.Hint="Barcode"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Margin="0,0,0,15"
+                                    IsReadOnly="False"/>
 
-                        <!-- Name -->
-                        <TextBox x:Name="NameTextBox"
-                                materialDesign:HintAssist.Hint="Product Name"
-                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                Margin="0,0,0,15"/>
+                            <!-- Name -->
+                            <TextBox x:Name="NameTextBox"
+                                    materialDesign:HintAssist.Hint="Product Name"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Margin="0,0,0,15"/>
 
-                        <!-- Category -->
-                        <ComboBox x:Name="CategoryComboBox" IsEditable="True"
-                                 materialDesign:HintAssist.Hint="Category"
-                                 Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                 Margin="0,0,0,15"/>
+                            <!-- Category -->
+                            <ComboBox x:Name="CategoryComboBox" IsEditable="True"
+                                     materialDesign:HintAssist.Hint="Category"
+                                     Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                     Margin="0,0,0,15"/>
 
-                        <!-- Price -->
-                        <TextBox x:Name="PriceTextBox"
-                                materialDesign:HintAssist.Hint="Selling Price"
-                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                Margin="0,0,0,15"/>
+                            <!-- Price -->
+                            <TextBox x:Name="PriceTextBox"
+                                    materialDesign:HintAssist.Hint="Selling Price"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Margin="0,0,0,15"/>
 
-                        <!-- Cost Price -->
-                        <TextBox x:Name="CostPriceTextBox"
-                                materialDesign:HintAssist.Hint="Cost Price"
-                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                Margin="0,0,0,15"/>
+                            <!-- Cost Price -->
+                            <TextBox x:Name="CostPriceTextBox"
+                                    materialDesign:HintAssist.Hint="Cost Price"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Margin="0,0,0,15"/>
 
-                        <!-- Stock Quantity -->
-                        <TextBox x:Name="StockQuantityTextBox"
-                                materialDesign:HintAssist.Hint="Stock Quantity"
-                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                Margin="0,0,0,15"/>
+                            <!-- Stock Quantity -->
+                            <TextBox x:Name="StockQuantityTextBox"
+                                    materialDesign:HintAssist.Hint="Stock Quantity"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Margin="0,0,0,15"/>
 
-                        <!-- Low Stock Threshold -->
-                        <TextBox x:Name="LowStockThresholdTextBox"
-                                materialDesign:HintAssist.Hint="Low Stock Threshold"
-                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                Margin="0,0,0,20"/>
+                            <!-- Low Stock Threshold -->
+                            <TextBox x:Name="LowStockThresholdTextBox"
+                                    materialDesign:HintAssist.Hint="Low Stock Threshold"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Margin="0,0,0,20"/>
+                        </StackPanel>
 
-                        <!-- Action Buttons -->
-                        <StackPanel>
+                        <!-- Action Buttons (Outside EditPanel to allow Batch Actions) -->
+                        <StackPanel x:Name="ActionPanel" IsEnabled="True">
                             <Button x:Name="SaveButton"
                                    Content="SAVE CHANGES"
                                    Style="{StaticResource MaterialDesignRaisedButton}"
                                    Margin="0,0,0,10"
-                                   Click="SaveButton_Click"/>
+                                   Click="SaveButton_Click"
+                                   IsEnabled="False"/>
                             <Button x:Name="DeleteButton"
                                    Content="DELETE PRODUCT"
                                    Style="{StaticResource MaterialDesignOutlinedButton}"
@@ -210,7 +220,8 @@
                                    Content="RESTOCK"
                                    Style="{StaticResource MaterialDesignOutlinedButton}"
                                    Margin="0,0,0,10"
-                                   Click="RestockButton_Click"/>
+                                   Click="RestockButton_Click"
+                                   IsEnabled="False"/>
                             <Button x:Name="PrintLabelButton"
                                    Content="PRINT LABEL"
                                    Style="{StaticResource MaterialDesignOutlinedButton}"

@@ -14,10 +14,10 @@ namespace SurfPOS.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
+        public async Task<IEnumerable<Product>> GetAllProductsAsync(bool includeInactive = false)
         {
             return await _context.Products
-                .Where(p => p.IsActive)
+                .Where(p => includeInactive || p.IsActive)
                 .OrderBy(p => p.Name)
                 .ToListAsync();
         }
@@ -43,7 +43,17 @@ namespace SurfPOS.Services
 
             product.CreatedAt = DateTime.Now;
             _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+            
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                // Detach the entity if save fails so it doesn't pollute the context for future operations
+                _context.Entry(product).State = EntityState.Detached;
+                throw;
+            }
 
             return product;
         }
@@ -63,9 +73,8 @@ namespace SurfPOS.Services
             if (product == null)
                 return false;
 
-            // Soft delete
-            product.IsActive = false;
-            product.UpdatedAt = DateTime.Now;
+            // Hard delete
+            _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
             return true;

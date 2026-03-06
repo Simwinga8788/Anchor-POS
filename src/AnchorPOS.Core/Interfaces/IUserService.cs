@@ -10,5 +10,6 @@ namespace SurfPOS.Core.Interfaces
         Task<User> UpdateUserAsync(int id, string username, UserRole role, bool isActive);
         Task<bool> ChangePasswordAsync(int id, string newPassword);
         Task<bool> DeactivateUserAsync(int id);
+        Task<bool> DeleteUserAsync(int id);
     }
 }

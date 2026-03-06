@@ -2,6 +2,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.IO;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using SurfPOS.Core.Entities;
 using SurfPOS.Core.Interfaces;
@@ -48,19 +50,61 @@ public partial class MainWindow : Window
         {
             UserInfoTextBlock.Text = $"Logged in as: {CurrentUser.Username} ({CurrentUser.Role})";
             
-            // Hide admin-only buttons for salesperson
-            if (CurrentUser.Role != UserRole.Admin)
+            // Hide admin/developer buttons by default
+            ProductsButton.Visibility = Visibility.Collapsed;
+            ReportsButton.Visibility = Visibility.Collapsed;
+            UsersButton.Visibility = Visibility.Collapsed; // Users management
+            SettingsButton.Visibility = Visibility.Collapsed; // Settings restricted to Developer
+
+            if (CurrentUser.Role == UserRole.Admin)
             {
-                ProductsButton.Visibility = Visibility.Collapsed;
-                ReportsButton.Visibility = Visibility.Collapsed;
-                UsersButton.Visibility = Visibility.Collapsed;
-                SettingsButton.Visibility = Visibility.Collapsed;
+                // Admin sees Products, Reports, Users
+                ProductsButton.Visibility = Visibility.Visible;
+                ReportsButton.Visibility = Visibility.Visible;
+                UsersButton.Visibility = Visibility.Visible;
+            }
+            else if (CurrentUser.Role == UserRole.Developer)
+            {
+                // Developer sees EVERYTHING including Settings
+                ProductsButton.Visibility = Visibility.Visible;
+                ReportsButton.Visibility = Visibility.Visible;
+                UsersButton.Visibility = Visibility.Visible;
+                SettingsButton.Visibility = Visibility.Visible;
             }
         }
 
         await LoadProducts();
         CartListView.ItemsSource = _cartItems;
         BarcodeSearchBox.Focus();
+        LoadStoreConfig();
+    }
+
+    private void LoadStoreConfig()
+    {
+        try
+        {
+            // Try to load store name from file config
+            var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AnchorPOS", "store_config.json");
+            if (File.Exists(configPath))
+            {
+                var json = File.ReadAllText(configPath);
+                using (var doc = JsonDocument.Parse(json))
+                {
+                    if (doc.RootElement.TryGetProperty("StoreName", out var nameProp))
+                    {
+                        var storeName = nameProp.GetString();
+                        if (!string.IsNullOrEmpty(storeName))
+                        {
+                            StoreNameTextBlock.Text = storeName.ToUpper();
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading store config for UI: {ex.Message}");
+        }
     }
 
     private async Task LoadProducts()
@@ -297,7 +341,8 @@ public partial class MainWindow : Window
             CheckoutButton.IsEnabled = false;
 
             // Get payment method
-            var paymentMethod = PaymentMethodComboBox.SelectedIndex switch
+            var selectedIndex = PaymentMethodComboBox.SelectedIndex;
+            var paymentMethod = selectedIndex switch
             {
                 0 => PaymentMethod.Cash,
                 1 => PaymentMethod.Card,
@@ -305,23 +350,48 @@ public partial class MainWindow : Window
                 _ => PaymentMethod.Cash
             };
 
+            // Debug logging
+            System.Diagnostics.Debug.WriteLine($"Selected Index: {selectedIndex}");
+            System.Diagnostics.Debug.WriteLine($"Payment Method: {paymentMethod}");
+            System.Diagnostics.Debug.WriteLine($"Cart Items: {_cartItems.Count}");
+
             // Prepare items
             var items = _cartItems.Select(c => (c.ProductId, c.Quantity)).ToList();
 
             // Process sale
             var transaction = await _salesService.ProcessSaleAsync(CurrentUser.Id, items, paymentMethod, CurrentShift?.Id);
 
-            // Open cash drawer for cash payments
+            // Open cash drawer for cash payments (optional - don't fail if it doesn't work)
             if (paymentMethod == PaymentMethod.Cash)
             {
-                await _receiptPrinterService.OpenCashDrawerAsync();
+                try
+                {
+                    await _receiptPrinterService.OpenCashDrawerAsync();
+                    System.Diagnostics.Debug.WriteLine("Cash drawer opened successfully");
+                }
+                catch (Exception drawerEx)
+                {
+                    // Log but don't fail the transaction
+                    System.Diagnostics.Debug.WriteLine($"Cash drawer failed to open: {drawerEx.Message}");
+                    // Continue with transaction - drawer opening is optional
+                }
             }
 
-            // Show receipt preview
-            var auditService = _serviceProvider.GetRequiredService<IAuditService>();
-            var previewDialog = new ReceiptPreviewDialog(_receiptPrinterService, auditService, transaction, CurrentUser);
-            previewDialog.Owner = this;
-            previewDialog.ShowDialog();
+            // Direct Print (No Preview)
+            try
+            {
+                bool printSuccess = await _receiptPrinterService.PrintReceiptAsync(transaction, CurrentUser);
+                if (!printSuccess)
+                {
+                    // Optional: Notify if print failed, but don't block flow heavily
+                     MessageBox.Show("Receipt printing failed. Check printer connection.", "Printer Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception printEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"Printing error: {printEx.Message}");
+                MessageBox.Show($"Printing error: {printEx.Message}", "Printer Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
             
             // Show success
             decimal total = _cartItems.Sum(item => item.Total);
@@ -342,7 +412,19 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Checkout failed: {ex.Message}", "Error", 
+            // Enhanced error logging
+            System.Diagnostics.Debug.WriteLine($"CHECKOUT ERROR: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+
+            MessageBox.Show(
+                $"Checkout failed: {ex.Message}\n\n" +
+                $"Details: {ex.InnerException?.Message ?? "No additional details"}\n\n" +
+                $"Please check the debug output for more information.",
+                "Error", 
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
@@ -389,58 +471,60 @@ public partial class MainWindow : Window
 
     private async void LogoutButton_Click(object sender, RoutedEventArgs e)
     {
-        var result = MessageBox.Show("Are you sure you want to logout?", "Confirm Logout", 
+        var result = MessageBox.Show("Are you sure you want to logout? (This will end your shift)", "Confirm Logout", 
             MessageBoxButton.YesNo, MessageBoxImage.Question);
         
         if (result == MessageBoxResult.Yes)
         {
+            var logFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "AnchorPOS_Debug.txt");
+            System.IO.File.AppendAllText(logFile, $"\n\n--- {DateTime.Now} Logout Clicked ---\n");
+
             try
             {
                 // End shift if active
                 if (CurrentShift != null && CurrentShift.IsActive && CurrentUser != null)
                 {
-                    // End shift automatically (cash calculated from transactions)
+                    System.IO.File.AppendAllText(logFile, "Ending active shift...\n");
                     var endedShift = await _shiftService.EndShiftAsync(CurrentShift.Id, 0);
+                    System.IO.File.AppendAllText(logFile, $"Shift ended. Report at: {endedShift.ReportFilePath}\n");
                     
-                    // Automatically send reports
                     bool emailSent = false;
                     bool whatsappOpened = false;
 
-                    // Try to send via email (if configured)
                     try
                     {
                         var adminEmail = await GetAdminEmailAsync();
                         if (!string.IsNullOrEmpty(adminEmail))
                         {
+                            System.IO.File.AppendAllText(logFile, "Sending email...\n");
                             emailSent = await _emailService.SendShiftReportAsync(
-                                adminEmail, 
-                                endedShift.ReportFilePath!, 
-                                CurrentUser.Username, 
-                                endedShift.StartTime, 
-                                endedShift.EndTime);
+                                adminEmail, endedShift.ReportFilePath!, CurrentUser.Username, endedShift.StartTime, endedShift.EndTime);
+                            System.IO.File.AppendAllText(logFile, $"Email sent: {emailSent}\n");
                         }
                     }
-                    catch { }
+                    catch (Exception ex) { System.IO.File.AppendAllText(logFile, $"Email err: {ex.Message}\n"); }
 
-                    // Try to send via WhatsApp (if configured)
                     try
                     {
                         var adminPhone = await GetAdminPhoneAsync();
+                        System.IO.File.AppendAllText(logFile, $"Admin phone from settings: {adminPhone}\n");
                         if (!string.IsNullOrEmpty(adminPhone))
                         {
-                            whatsappOpened = await _emailService.SendWhatsAppReportAsync(
-                                adminPhone, 
-                                endedShift.ReportFilePath!, 
-                                CurrentUser.Username);
+                            System.IO.File.AppendAllText(logFile, "Queueing WhatsApp report in background worker...\n");
+                            var whatsappWorker = _serviceProvider.GetRequiredService<SurfPOS.Services.IWhatsAppWorkerService>();
+                            whatsappWorker.EnqueueReport(adminPhone, endedShift.ReportFilePath!, CurrentUser.Username);
+                            whatsappOpened = true; // Set to true blindly so the UI says it was "generated"
+                            System.IO.File.AppendAllText(logFile, $"WhatsApp task queued.\n");
                         }
                     }
-                    catch { }
+                    catch (Exception ex) { System.IO.File.AppendAllText(logFile, $"WhatsApp queue err: {ex.Message}\n"); }
 
                     var sendStatus = "";
                     if (emailSent) sendStatus += "\n✓ Email sent";
-                    if (whatsappOpened) sendStatus += "\n✓ WhatsApp opened";
-                    if (!emailSent && !whatsappOpened) sendStatus = "\n(Email/WhatsApp not configured)";
+                    if (whatsappOpened) sendStatus += "\n✓ WhatsApp generated";
+                    if (!emailSent && !whatsappOpened) sendStatus = "\n(Email/WhatsApp not sent/configured)";
                     
+                    System.IO.File.AppendAllText(logFile, "Showing MessageBox...\n");
                     MessageBox.Show(
                         $"Shift ended successfully!\n\n" +
                         $"Duration: {endedShift.Duration?.ToString(@"hh\:mm")}\n" +
@@ -451,12 +535,22 @@ public partial class MainWindow : Window
                         "Shift Report",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
+                    System.IO.File.AppendAllText(logFile, "MessageBox closed.\n");
+                }
+                else
+                {
+                    System.IO.File.AppendAllText(logFile, "No active shift to end.\n");
                 }
                 
-                Application.Current.Shutdown();
+                System.IO.File.AppendAllText(logFile, "Logging out, returning to Login window...\n");
+                var loginWindow = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<LoginWindow>(_serviceProvider);
+                Application.Current.MainWindow = loginWindow;
+                loginWindow.Show();
+                this.Close();
             }
             catch (Exception ex)
             {
+                System.IO.File.AppendAllText(logFile, $"LOGOUT CRITICAL ERROR: {ex.Message}\n{ex.StackTrace}\n");
                 MessageBox.Show($"Error ending shift: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }

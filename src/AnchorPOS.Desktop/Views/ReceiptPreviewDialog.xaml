@@ -30,8 +30,11 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <TextBlock x:Name="ReceiptTextBlock"
                           FontFamily="Courier New"
-                          FontSize="11"
+                          FontSize="12"
                           Foreground="Black"
+                          HorizontalAlignment="Center"
+                          TextAlignment="Left"
+                          MaxWidth="400"
                           TextWrapping="Wrap"/>
             </ScrollViewer>
         </Border>

@@ -20,17 +20,22 @@
                 Background="{DynamicResource MaterialDesign.Brush.Primary}"
                 Padding="20">
             <StackPanel>
-                <TextBlock Text="KENJI'S BEAUTY SPACE" 
-                          FontSize="32" 
+                <TextBlock x:Name="StoreNameTextBlock"
+                          Text="ANCHOR POS" 
+                          FontSize="26" 
                           FontWeight="Bold"
                           HorizontalAlignment="Center"
+                          TextAlignment="Center"
+                          TextWrapping="Wrap"
                           Foreground="White"/>
-                <TextBlock Text="Beauty &amp; Fashion Store" 
+                <TextBlock x:Name="StoreSubtitleTextBlock"
+                          Text="Point of Sale" 
                           FontSize="14" 
                           HorizontalAlignment="Center"
                           Foreground="White"
                           Opacity="0.8"/>
             </StackPanel>
+
         </Border>
 
         <!-- Login Form -->

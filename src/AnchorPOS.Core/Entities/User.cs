@@ -5,7 +5,8 @@ namespace SurfPOS.Core.Entities
     public enum UserRole
     {
         Admin,
-        Salesperson
+        Salesperson,
+        Developer
     }
 
     public class User : BaseEntity

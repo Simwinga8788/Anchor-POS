@@ -121,10 +121,22 @@ namespace SurfPOS.Services
                 .Where(t => t.ShiftId == shiftId)
                 .ToListAsync();
 
+            // Get Store Name from settings
+            var storeName = await _context.AppSettings
+                .Where(s => s.Key == "StoreName")
+                .Select(s => s.Value)
+                .FirstOrDefaultAsync() ?? "AnchorPOS";
+
+            // Sanitize valid filename characters
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                storeName = storeName.Replace(c, '_');
+            }
+
             // Create folder for shift reports
             string reportsFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "Kenji's Beauty Space",
+                storeName,
                 "Shift Reports");
             Directory.CreateDirectory(reportsFolder);
 
@@ -137,7 +149,8 @@ namespace SurfPOS.Services
                 filePath, 
                 transactions, 
                 shift.StartTime, 
-                shift.EndTime ?? DateTime.Now);
+                shift.EndTime ?? DateTime.Now,
+                storeName); // Pass store name
 
             return filePath;
         }

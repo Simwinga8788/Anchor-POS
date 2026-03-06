@@ -1,7 +1,11 @@
 using System.Windows;
 using SurfPOS.Core.Entities;
 using SurfPOS.Core.Interfaces;
+using SurfPOS.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+using System.Text.Json;
 
 namespace SurfPOS.Desktop.Views
 {
@@ -19,7 +23,11 @@ namespace SurfPOS.Desktop.Views
             _serviceProvider = serviceProvider;
 
             // Set focus to username
-            Loaded += (s, e) => UsernameTextBox.Focus();
+            Loaded += (s, e) => 
+            {
+                UsernameTextBox.Focus();
+                LoadStoreConfig();
+            };
 
             // Handle Enter key on password box
             PasswordBox.KeyDown += (s, e) =>
@@ -96,6 +104,50 @@ namespace SurfPOS.Desktop.Views
         {
             ErrorTextBlock.Text = message;
             ErrorTextBlock.Visibility = Visibility.Visible;
+        }
+        private void LoadStoreConfig()
+        {
+            try
+            {
+                // Try to load store name from file config
+                var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AnchorPOS", "store_config.json");
+                if (File.Exists(configPath))
+                {
+                    var json = File.ReadAllText(configPath);
+                    using (var doc = JsonDocument.Parse(json))
+                    {
+                        if (doc.RootElement.TryGetProperty("StoreName", out var nameProp))
+                        {
+                            var storeName = nameProp.GetString();
+                            if (!string.IsNullOrEmpty(storeName))
+                            {
+                                StoreNameTextBlock.Text = storeName.ToUpper();
+                                // StoreSubtitleTextBlock.Text = ... // Optional: Load address/phone if desired
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Fallback to database
+                    using (var scope = _serviceProvider.CreateScope())
+                    {
+                        var dbContext = scope.ServiceProvider.GetRequiredService<SurfDbContext>();
+                        var storeName = dbContext.AppSettings
+                            .AsNoTracking()
+                            .FirstOrDefault(s => s.Key == "StoreName")?.Value;
+                        
+                        if (!string.IsNullOrEmpty(storeName))
+                        {
+                            StoreNameTextBlock.Text = storeName.ToUpper();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading store config for Login: {ex.Message}");
+            }
         }
     }
 }

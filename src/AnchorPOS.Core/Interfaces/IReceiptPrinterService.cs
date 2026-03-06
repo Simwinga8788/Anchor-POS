@@ -8,5 +8,6 @@ namespace SurfPOS.Core.Interfaces
         Task<bool> OpenCashDrawerAsync();
         bool IsPrinterAvailable();
         string GetDefaultPrinterName();
+        string GenerateReceiptContent(Transaction transaction, User cashier);
     }
 }

@@ -1,5 +1,5 @@
 #define MyAppName "Anchor POS"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "3.5.0"
 #define MyAppPublisher "Anchor POS Team"
 #define MyAppExeName "AnchorPOS.Desktop.exe"
 #define MyAppAssocName MyAppName + " File"
@@ -18,7 +18,7 @@ AllowNoIcons=yes
 LicenseFile=LICENSE.txt
 InfoBeforeFile=INSTALLATION_NOTES.txt
 OutputDir=installer_output
-OutputBaseFilename=AnchorPOS_Setup_v1.1.0
+OutputBaseFilename=AnchorPOS_Setup_v3.5.0
 ; Only enable icon if it exists
 SetupIconFile=icon.ico
 Compression=lzma2/max
@@ -38,7 +38,10 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 
 [Files]
 ; Main application files
-Source: "src\AnchorPOS.Desktop\bin\Release\net10.0-windows\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "src\AnchorPOS.Desktop\bin\Release\net8.0-windows\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Documentation
+Source: "DEVELOPER_MANUAL.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "BLUETOOTH_PRINTER_SETUP.md"; DestDir: "{app}"; Flags: ignoreversion
 ; SQL Server Express Installer (must be in the project root)
 Source: "sql_express_installer.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Check: NeedsSqlInstance
 

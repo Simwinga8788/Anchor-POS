@@ -122,7 +122,7 @@ namespace SurfPOS.Services
             await Task.CompletedTask;
         }
 
-        public async Task ExportTransactionsToExcelAsync(string filePath, IEnumerable<Transaction> transactions, DateTime startDate, DateTime endDate)
+        public async Task ExportTransactionsToExcelAsync(string filePath, IEnumerable<Transaction> transactions, DateTime startDate, DateTime endDate, string storeName)
         {
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Sales Report");
@@ -160,7 +160,7 @@ namespace SurfPOS.Services
             decimal avgTicket = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
             // --- 2. REPORT HEADER ---
-            worksheet.Cell(1, 1).Value = "KENJI'S BEAUTY SPACE";
+            worksheet.Cell(1, 1).Value = storeName.ToUpper();
             worksheet.Cell(1, 1).Style.Font.FontSize = 24;
             worksheet.Cell(1, 1).Style.Font.Bold = true;
             worksheet.Cell(1, 1).Style.Font.FontColor = primaryColor;
@@ -346,7 +346,7 @@ namespace SurfPOS.Services
             headerRange.Style.Fill.BackgroundColor = XLColor.LightGreen;
 
             // Sample data
-            worksheet.Cell(2, 1).Value = "A1000";
+            worksheet.Cell(2, 1).Value = "123456789";
             worksheet.Cell(2, 2).Value = "Sample Product";
             worksheet.Cell(2, 3).Value = "General";
             worksheet.Cell(2, 4).Value = 10.99;
@@ -359,7 +359,7 @@ namespace SurfPOS.Services
             worksheet.Cell(4, 1).Style.Font.Bold = true;
             worksheet.Cell(5, 1).Value = "1. Fill in product details starting from row 2";
             worksheet.Cell(6, 1).Value = "2. Fields marked with * are required";
-            worksheet.Cell(7, 1).Value = "3. Barcode: Enter valid barcode OR leave blank to auto-generate";
+            worksheet.Cell(7, 1).Value = "3. Barcode: Scan or type product barcode. Leave blank to auto-generate.";
             worksheet.Cell(8, 1).Value = "4. Categories: Hair Products, Wigs, Perfumes, Makeup, Clothes, General";
 
             worksheet.Columns().AdjustToContents();

@@ -21,6 +21,7 @@ dotnet publish src\SurfPOS.Desktop\SurfPOS.Desktop.csproj `
 # 2. Create installer (requires Inno Setup)
 # Open SurfPOS_Installer.iss in Inno Setup and click "Compile"
 ```
+ dotnet publish src\AnchorPOS.Desktop\AnchorPOS.Desktop.csproj --configuration Release --runtime win-x64 --self-contained true --output "src\AnchorPOS.Desktop\bin\Release\net8.0-windows\win-x64\publish"
 
 ---
 

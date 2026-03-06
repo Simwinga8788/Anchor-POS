@@ -127,15 +127,20 @@ namespace SurfPOS.Services
 
                 if (string.IsNullOrEmpty(adminEmail)) return;
 
+                var storeName = await _context.AppSettings
+                    .Where(s => s.Key == "StoreName")
+                    .Select(s => s.Value)
+                    .FirstOrDefaultAsync() ?? "Anchor POS";
+
                 foreach (var product in products)
                 {
-                    string subject = $"Low Stock Alert: {product.Name}";
+                    string subject = $"Low Stock Alert: {product.Name} - {storeName}";
                     string body = $"Low Stock Warning!\n\n" +
                                  $"Product: {product.Name}\n" +
                                  $"Current Stock: {product.StockQuantity}\n" +
                                  $"Threshold: {product.LowStockThreshold}\n\n" +
                                  $"Please restock this item soon.\n" +
-                                 $"Kenji's Beauty Space POS";
+                                 $"{storeName}";
 
                     // We use the EmailService which handles Smtp retrieval internally
                     await _emailService.SendEmailAsync(adminEmail, subject, body);

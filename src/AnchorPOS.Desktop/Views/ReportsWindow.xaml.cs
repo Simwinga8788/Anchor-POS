@@ -1,5 +1,7 @@
 using System.Windows;
 using SurfPOS.Core.Entities;
+using System.IO;
+using System.Text.Json;
 using SurfPOS.Core.Interfaces;
 
 namespace SurfPOS.Desktop.Views
@@ -237,11 +239,30 @@ namespace SurfPOS.Desktop.Views
 
                 if (saveFileDialog.ShowDialog() == true)
                 {
+                    // Get Store Name
+                    string storeName = "Anchor POS";
+                    try
+                    {
+                        var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AnchorPOS", "store_config.json");
+                        if (File.Exists(configPath))
+                        {
+                            var json = File.ReadAllText(configPath);
+                            using (var doc = JsonDocument.Parse(json))
+                            {
+                                if (doc.RootElement.TryGetProperty("StoreName", out var nameProp))
+                                {
+                                    storeName = nameProp.GetString() ?? storeName;
+                                }
+                            }
+                        }
+                    } catch { }
+
                     await _excelService.ExportTransactionsToExcelAsync(
                         saveFileDialog.FileName, 
                         _transactions, 
                         StartDatePicker.SelectedDate.Value, 
-                        EndDatePicker.SelectedDate.Value);
+                        EndDatePicker.SelectedDate.Value,
+                        storeName);
 
                     // Log export action
                     if (CurrentUser != null)
