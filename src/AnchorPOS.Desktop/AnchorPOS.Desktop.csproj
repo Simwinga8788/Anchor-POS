@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\AnchorPOS.Core\AnchorPOS.Core.csproj" />
@@ -24,7 +24,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <Version>3.5.0</Version>
+    <Version>3.5.1</Version>
   </PropertyGroup>
 
 </Project>

@@ -66,7 +66,7 @@ if (Test-Path $innoSetupPath) {
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "Installer location:" -ForegroundColor Yellow
-        Write-Host "  installer_output\AnchorPOS_Setup_v3.5.0.exe" -ForegroundColor White
+        Write-Host "  installer_output\AnchorPOS_Setup_v3.5.1.exe" -ForegroundColor White
         Write-Host ""
     }
     else {

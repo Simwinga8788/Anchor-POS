@@ -107,7 +107,7 @@ namespace SurfPOS.Services
             using var driver = new OpenQA.Selenium.Chrome.ChromeDriver(driverService, options);
             driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(120);
 
-            var wait = new OpenQA.Selenium.Support.UI.WebDriverWait(driver, TimeSpan.FromSeconds(60));
+            var wait = new OpenQA.Selenium.Support.UI.WebDriverWait(driver, TimeSpan.FromSeconds(180));
 
             try
             {
@@ -122,9 +122,18 @@ namespace SurfPOS.Services
                     var url = $"https://web.whatsapp.com/send?phone={phone}&text={Uri.EscapeDataString(message)}";
                     driver.Navigate().GoToUrl(url);
 
+                    // ── Step 0: Wait for "Loading your chats" to disappear if present ────
+                    try
+                    {
+                        var loadingWait = new OpenQA.Selenium.Support.UI.WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                        loadingWait.Until(d => {
+                            var progress = d.FindElements(OpenQA.Selenium.By.XPath("//*[contains(text(), 'Loading your chats')]"));
+                            return progress.Count == 0;
+                        });
+                    }
+                    catch { /* Continue anyway, it might have loaded fast */ }
+
                     // ── Step 1: Wait for chat to load, then send text ────────────────────
-                    // Chat input: WhatsApp removed the <footer> wrapper in a recent update.
-                    // data-tab="10" is WhatsApp's stable internal identifier for the message box.
                     var chatInput = wait.Until(d =>
                         d.FindElement(OpenQA.Selenium.By.XPath(
                             "//div[@contenteditable='true'][@data-tab='10'] | " +

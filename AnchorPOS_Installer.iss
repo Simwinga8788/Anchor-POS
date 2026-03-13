@@ -1,10 +1,11 @@
 #define MyAppName "Anchor POS"
-#define MyAppVersion "3.5.0"
+#define MyAppVersion "3.5.1"
 #define MyAppPublisher "Anchor POS Team"
 #define MyAppExeName "AnchorPOS.Desktop.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".apos"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
+#define MySetupName "AnchorPOS_Setup_v3.5.1"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -18,7 +19,7 @@ AllowNoIcons=yes
 LicenseFile=LICENSE.txt
 InfoBeforeFile=INSTALLATION_NOTES.txt
 OutputDir=installer_output
-OutputBaseFilename=AnchorPOS_Setup_v3.5.0
+OutputBaseFilename={#MySetupName}
 ; Only enable icon if it exists
 SetupIconFile=icon.ico
 Compression=lzma2/max
