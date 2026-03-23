@@ -1,0 +1,95 @@
+@page "/"
+@using AnchorPOS.Api.Data
+@using Microsoft.EntityFrameworkCore
+@inject CloudDbContext Db
+
+<PageTitle>Dashboard | Anchor POS Premium</PageTitle>
+
+<div class="header-banner">
+    <h1 class="brand-title">Welcome to HQ</h1>
+    <div style="color: var(--text-muted); display:flex; gap: 16px; align-items:center;">
+        <span style="font-weight: 600; font-size: 0.9rem;">Global Network Status</span>
+        <div style="width: 12px; height: 12px; background: #34d399; border-radius: 50%; box-shadow: 0 0 10px #34d399; animation: pulse 2s infinite;"></div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="glass-card">
+        <h3 class="card-title">Total Processed Revenue</h3>
+        <p class="card-value green">@TotalRevenue.ToString("C")</p>
+        <span style="color:#34d399; font-size:14px; font-weight:600;">+14% Since Last Month</span>
+    </div>
+
+    <div class="glass-card">
+        <h3 class="card-title">Active Stores (Tenants)</h3>
+        <p class="card-value blue">@TotalStores</p>
+        <span style="color:var(--text-muted); font-size:14px;">Across all regions</span>
+    </div>
+
+    <div class="glass-card">
+        <h3 class="card-title">Today's Global Transactions</h3>
+        <p class="card-value">@TodayTransactions.ToString("N0")</p>
+        <span style="color:var(--text-muted); font-size:14px;">Real-time sync</span>
+    </div>
+</div>
+
+<div class="glass-card" style="margin-top: 32px">
+    <h3 class="card-title" style="margin-bottom: 24px">Live Sync Feed (All Stores)</h3>
+
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>TIME</th>
+                <th>STORE ID</th>
+                <th>CASHIER</th>
+                <th>AMOUNT</th>
+                <th>PAYMENT</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tx in RecentTransactions)
+            {
+                <tr>
+                    <td>@tx.Date.ToString("HH:mm:ss")</td>
+                    <td><span style="background: rgba(96,165,250,0.1); color: #60a5fa; padding: 4px 8px; border-radius: 6px; font-size: 12px font-family: monospace;">...@tx.StoreId.Substring(tx.StoreId.Length - 8)</span></td>
+                    <td style="font-weight: 600">@tx.CashierName</td>
+                    <td style="font-weight: 700; color: #f8fafc">@tx.TotalAmount.ToString("C")</td>
+                    <td>
+                        <span style="border-radius: 8px; padding: 4px 12px; font-size: 12px; font-weight: 600; 
+                              @(tx.PaymentMethod == "Cash" ? "background: rgba(52,211,153,0.1); color: #34d399" : "background: rgba(139,92,246,0.1); color: #8b5cf6")">
+                            @tx.PaymentMethod
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    @@keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+    }
+</style>
+
+@code {
+    private decimal TotalRevenue = 0;
+    private int TotalStores = 0;
+    private int TodayTransactions = 0;
+    private List<AnchorPOS.Api.Models.CloudTransaction> RecentTransactions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Add a slight delay just to show how fast Blazor Server renders after loading
+        TotalRevenue = await Db.Transactions.SumAsync(t => t.TotalAmount);
+        TotalStores = await Db.Transactions.Select(t => t.StoreId).Distinct().CountAsync();
+        TodayTransactions = await Db.Transactions.CountAsync(t => t.Date.Date == DateTime.Today);
+
+        RecentTransactions = await Db.Transactions
+                                     .OrderByDescending(t => t.Date)
+                                     .Take(10)
+                                     .ToListAsync();
+    }
+}
