@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.IO;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
@@ -73,11 +73,14 @@ public partial class App : Application
     private void ConfigureServices(IServiceCollection services)
     {
         // Database
-        services.AddDbContext<SurfDbContext>(options =>
-            options.UseSqlServer("Server=.\\SQLEXPRESS;Database=SurfPOS;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;Connection Timeout=60"));
+        var connStr = "Server=.\\SQLEXPRESS;Database=SurfPOS;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;Connection Timeout=60";
+        services.AddDbContext<SurfDbContext>(options => options.UseSqlServer(connStr));
+        // Factory needed by SyncService so it can open its own connections on background threads
+        services.AddDbContextFactory<SurfDbContext>(options => options.UseSqlServer(connStr), ServiceLifetime.Singleton);
 
         // Services
         services.AddSingleton<IWhatsAppWorkerService, WhatsAppWorkerService>();
+        services.AddSingleton<ISyncService, SyncService>();   // singleton — owns the background loop
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ISalesService, SalesService>();
@@ -167,9 +170,13 @@ public partial class App : Application
                 DbSeeder.SeedData(context);
             }
 
-            // Start the true background WhatsApp queuing service invisibly
+            // Start background services (fire-and-forget)
             var whatsappWorker = _serviceProvider.GetRequiredService<IWhatsAppWorkerService>();
             whatsappWorker.Start();
+
+            // Start cloud sync loop — silently retries every 60s, safe even without internet
+            var syncService = _serviceProvider.GetRequiredService<ISyncService>();
+            syncService.StartBackgroundSync();
 
             // Show login window
             var loginWindow = _serviceProvider!.GetRequiredService<LoginWindow>();

@@ -51,12 +51,19 @@ namespace SurfPOS.Data
             // Seed App Settings
             // -------------------------
             context.AppSettings.AddRange(
-                new AppSetting { Key = "BarcodePrefix", Value = "SURF" },
+                new AppSetting { Key = "BarcodePrefix",   Value = "SURF" },
                 new AppSetting { Key = "NextBarcodeNumber", Value = "1" },
-                new AppSetting { Key = "StoreName", Value = "Anchor POS" },
-                new AppSetting { Key = "StoreAddress", Value = "123 Main Street" },
-                new AppSetting { Key = "StorePhone", Value = "+1234567890" },
-                new AppSetting { Key = "DatabaseSeeded", Value = "true" }
+                new AppSetting { Key = "StoreName",       Value = "Anchor POS" },
+                new AppSetting { Key = "StoreAddress",    Value = "123 Main Street" },
+                new AppSetting { Key = "StorePhone",      Value = "+1234567890" },
+                // ── Cloud Sync Settings ────────────────────────────────────────
+                // StoreId: unique ID generated at install — ties this terminal to a tenant
+                new AppSetting { Key = "StoreId",         Value = Guid.NewGuid().ToString() },
+                // ApiKey: blank until the owner registers on the Anchor POS portal
+                new AppSetting { Key = "ApiKey",          Value = "" },
+                // CloudApiUrl: the central Anchor POS cloud server
+                new AppSetting { Key = "CloudApiUrl",     Value = "https://api.anchorpos.app" },
+                new AppSetting { Key = "DatabaseSeeded",  Value = "true" }
             );
 
             context.SaveChanges();
